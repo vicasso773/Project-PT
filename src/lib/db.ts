@@ -1,10 +1,19 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaLibSQL } from "@prisma/adapter-libsql";
 import { randomBytes } from "node:crypto";
 import type { ScanReport } from "./scanner/types";
 
 // One shared database connection (Next.js reloads code in development).
+// Locally: the SQLite file in DATABASE_URL. On Vercel: Turso (hosted SQLite) when TURSO_DATABASE_URL is set.
+function makeClient() {
+  if (process.env.TURSO_DATABASE_URL) {
+    const adapter = new PrismaLibSQL({ url: process.env.TURSO_DATABASE_URL, authToken: process.env.TURSO_AUTH_TOKEN });
+    return new PrismaClient({ adapter });
+  }
+  return new PrismaClient();
+}
 const g = globalThis as unknown as { prisma?: PrismaClient };
-export const prisma = g.prisma ?? new PrismaClient();
+export const prisma = g.prisma ?? makeClient();
 if (process.env.NODE_ENV !== "production") g.prisma = prisma;
 
 /** Short, unguessable id for share links, e.g. "k3x9q2mwp7". */
