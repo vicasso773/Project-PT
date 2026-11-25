@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { loadReport } from "@/lib/db";
+import { loadCompetitors, loadReport } from "@/lib/db";
 import { baseUrl, parseLang, qrSvg, reportPath } from "@/lib/share";
 import { PresentView } from "@/components/report/PresentView";
 
@@ -15,5 +15,5 @@ export default async function PresentPage({ params, searchParams }: Props) {
   const row = await loadReport(id);
   if (!row) notFound();
   const shareUrl = (await baseUrl()) + reportPath(id, lang);
-  return <PresentView report={row.data} id={id} lang={lang} shareUrl={shareUrl} qr={await qrSvg(shareUrl)} />;
+  return <PresentView report={row.data} id={id} lang={lang} shareUrl={shareUrl} qr={await qrSvg(shareUrl)} competitors={await loadCompetitors(row.data)} />;
 }

@@ -8,10 +8,11 @@ import type { CheckResult, Lang, ScanReport, Service } from "@/lib/scanner/types
 import { EFFORT_TEXT, SERVICE_PITCH, SOURCE_TEXT, STATUS_TEXT, UI } from "@/lib/i18n";
 import { CategoryBar, Chip, ScoreRing, Section, StatusIcon, scoreColor } from "./bits";
 import { RevenueEstimate } from "./RevenueEstimate";
+import { type Competitor, CompareTable, TheyHaveList } from "./Compare";
 
 const SERVICE_ORDER: Service[] = ["website", "gbp", "reviews", "leads", "ordering"];
 
-export function ReportView({ report, id, lang = "en", shareUrl, qr }: { report: ScanReport; id: string; lang?: Lang; shareUrl: string; qr: string }) {
+export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors = [] }: { report: ScanReport; id: string; lang?: Lang; shareUrl: string; qr: string; competitors?: Competitor[] }) {
   usePrintExpandsDetails();
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -86,6 +87,14 @@ export function ReportView({ report, id, lang = "en", shareUrl, qr }: { report: 
           })}
         </div>
       </Section>
+
+      {/* ── Competitors ── */}
+      {competitors.length > 0 && (
+        <Section id="compare" title={t(UI.compareTitle)} sub={t(UI.compareSub)}>
+          <CompareTable report={report} competitors={competitors} lang={lang} />
+          <TheyHaveList report={report} competitors={competitors} lang={lang} />
+        </Section>
+      )}
 
       {/* ── Fix these first ── */}
       {top.length > 0 && (

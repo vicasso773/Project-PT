@@ -68,6 +68,14 @@ export interface ScanReport {
   notes: Text[]; // honest notes: "PageSpeed unavailable", "Built on Wix", …
   places: PlacesInfo | null;
   sources: { pagespeed: boolean; places: boolean; renderedFallback: boolean };
+  /** Competitor scans attached to this report (ids point at their own saved reports). */
+  compare?: CompareEntry[];
+}
+
+export interface CompareEntry {
+  input: string;
+  id?: string;
+  error?: string;
 }
 
 export type ScoreLabel = "urgent" | "needsWork" | "good" | "excellent";

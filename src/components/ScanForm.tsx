@@ -17,6 +17,8 @@ export function ScanForm() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [fresh, setFresh] = useState(false);
+  const [showComp, setShowComp] = useState(false);
+  const [comp, setComp] = useState(["", ""]);
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export function ScanForm() {
       const res = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, fresh }),
+        body: JSON.stringify({ url, fresh, competitors: showComp ? comp.filter((c) => c.trim()) : [] }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.id) throw new Error(json.error ?? "The scan failed. Please try again.");
@@ -71,6 +73,32 @@ export function ScanForm() {
       >
         {busy ? "Scanning…" : "Scan website"}
       </button>
+      <div className="mt-4 rounded-2xl border border-line">
+        <button type="button" onClick={() => setShowComp((v) => !v)} disabled={busy} className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left">
+          <span className="font-medium">Compare with competitors <span className="text-muted">(optional, up to 2)</span></span>
+          <span className="shrink-0 text-xl text-muted" aria-hidden>{showComp ? "−" : "+"}</span>
+        </button>
+        {showComp && (
+          <div className="space-y-2 px-5 pb-4">
+            {comp.map((c, i) => (
+              <input
+                key={i}
+                type="text"
+                inputMode="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                aria-label={`Competitor ${i + 1} website`}
+                placeholder={`Competitor ${i + 1} website`}
+                value={c}
+                disabled={busy}
+                onChange={(e) => setComp((prev) => prev.map((p, j) => (j === i ? e.target.value : p)))}
+                className="w-full rounded-xl border border-line bg-charcoal px-4 py-3 text-lg text-ivory placeholder:text-na focus:border-sage"
+              />
+            ))}
+          </div>
+        )}
+      </div>
       <label className="mt-3 flex items-center gap-2 text-sm text-muted">
         <input type="checkbox" checked={fresh} onChange={(e) => setFresh(e.target.checked)} disabled={busy} className="h-4 w-4 accent-[#7a8b6f]" />
         Force a fresh scan (otherwise a scan from the last hour is reused)

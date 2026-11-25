@@ -61,6 +61,12 @@ export const UI = {
     es: "Precise Talons crea sitios web, perfiles de Google Business y automatización de clientes para negocios locales.",
   },
   preparedBy: { en: "Prepared by Precise Talons", es: "Preparado por Precise Talons" },
+  compareTitle: { en: "How you compare", es: "Cómo se compara" },
+  compareSub: { en: "Same checks, same rules, run on nearby competitors.", es: "Las mismas revisiones y reglas, aplicadas a la competencia cercana." },
+  overall: { en: "Overall", es: "Total" },
+  you: { en: "You", es: "Usted" },
+  theyHave: { en: "What they have that you don't", es: "Lo que ellos tienen y usted no" },
+  couldntScan: { en: "Couldn't scan", es: "No se pudo escanear" },
   scoreTitle: { en: "Website score", es: "Puntuación del sitio" },
   scoreMethod: {
     en: "Each category is worth points: Conversion 30, SEO and tracking 25, Speed and mobile 25, Trust 10, Content 10. Inside a category, each check is worth its weight: pass earns all of it, warn earns half, fail earns none. Checks we couldn't run are left out and the category is scored on what we could check. If less than 40% of a category could be checked, the whole category is left out and the total is rescaled.",

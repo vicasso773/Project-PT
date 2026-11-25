@@ -8,11 +8,12 @@ import type { Lang, ScanReport, Service } from "@/lib/scanner/types";
 import { EFFORT_TEXT, SERVICE_PITCH, UI } from "@/lib/i18n";
 import { CategoryBar, ScoreRing, StatusIcon } from "./bits";
 import { LangToggle } from "./ReportView";
+import { type Competitor, CompareTable, TheyHaveList } from "./Compare";
 
 const SERVICE_ORDER: Service[] = ["website", "gbp", "reviews", "leads", "ordering"];
 
 /** Full-screen, big-text slides for showing an owner across the counter. Swipe, arrow keys, or tap the buttons. */
-export function PresentView({ report, id, lang, shareUrl, qr }: { report: ScanReport; id: string; lang: Lang; shareUrl: string; qr: string }) {
+export function PresentView({ report, id, lang, shareUrl, qr, competitors = [] }: { report: ScanReport; id: string; lang: Lang; shareUrl: string; qr: string; competitors?: Competitor[] }) {
   const t = (x: { en: string; es: string }) => x[lang];
   const track = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -48,6 +49,16 @@ export function PresentView({ report, id, lang, shareUrl, qr }: { report: ScanRe
           })}
       </div>
     </div>,
+
+    ...(competitors.length
+      ? [
+          <div key="compare" className="mx-auto w-full max-w-3xl">
+            <h2 className="mb-6 font-serif text-4xl sm:text-6xl">{t(UI.compareTitle)}</h2>
+            <CompareTable report={report} competitors={competitors} lang={lang} big />
+            <TheyHaveList report={report} competitors={competitors} lang={lang} big limit={3} />
+          </div>,
+        ]
+      : []),
 
     ...(top.length
       ? [

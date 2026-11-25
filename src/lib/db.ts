@@ -54,3 +54,15 @@ export async function recentScan(host: string) {
     select: { id: true },
   });
 }
+
+/** Load the competitor reports attached to a report. */
+export async function loadCompetitors(report: ScanReport) {
+  return Promise.all(
+    (report.compare ?? []).map(async (c) => ({
+      input: c.input,
+      id: c.id,
+      error: c.error,
+      report: c.id ? ((await loadReport(c.id))?.data ?? null) : null,
+    })),
+  );
+}

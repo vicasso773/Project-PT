@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { loadReport } from "@/lib/db";
+import { loadCompetitors, loadReport } from "@/lib/db";
 import { baseUrl, parseLang, qrSvg, reportPath } from "@/lib/share";
 import { ReportView } from "@/components/report/ReportView";
 
@@ -24,5 +24,5 @@ export default async function ReportPage({ params, searchParams }: Props) {
   const row = await loadReport(id);
   if (!row) notFound();
   const shareUrl = (await baseUrl()) + reportPath(id, lang);
-  return <ReportView report={row.data} id={row.id} lang={lang} shareUrl={shareUrl} qr={await qrSvg(shareUrl)} />;
+  return <ReportView report={row.data} id={row.id} lang={lang} shareUrl={shareUrl} qr={await qrSvg(shareUrl)} competitors={await loadCompetitors(row.data)} />;
 }
