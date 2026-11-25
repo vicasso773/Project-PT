@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CATEGORY_NAMES, SERVICE_NAMES } from "@/lib/scanner/definitions";
 import { CATEGORIES, LABEL_TEXT, fixFirst, pointsLost } from "@/lib/scanner/score";
@@ -11,7 +11,11 @@ import { RevenueEstimate } from "./RevenueEstimate";
 
 const SERVICE_ORDER: Service[] = ["website", "gbp", "reviews", "leads", "ordering"];
 
-export function ReportView({ report, id, lang = "en" }: { report: ScanReport; id: string; lang?: Lang }) {
+export function ReportView({ report, id, lang = "en", shareUrl, qr }: { report: ScanReport; id: string; lang?: Lang; shareUrl: string; qr: string }) {
+  usePrintExpandsDetails();
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
   const t = (x: { en: string; es: string }) => x[lang];
   const label = report.label ? LABEL_TEXT[report.label] : null;
   const date = new Date(report.scannedAt).toLocaleDateString(lang === "es" ? "es-US" : "en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -23,21 +27,25 @@ export function ReportView({ report, id, lang = "en" }: { report: ScanReport; id
   return (
     <main className="mx-auto max-w-3xl px-4 pb-24 sm:px-6">
       {/* ── Top bar ── */}
-      <div className="flex items-center justify-between gap-3 whitespace-nowrap py-4 text-sm">
+      <div className="no-print flex items-center justify-between gap-3 whitespace-nowrap py-4 text-sm">
         <Link href="/" className="font-semibold tracking-[0.18em] text-sage-light">PRECISE TALONS</Link>
-        <div className="flex gap-2">
-          <CopyLinkButton id={id} lang={lang} />
-          <Link href="/" className="rounded-full border border-line px-3.5 py-2 hover:bg-panel">{t(UI.newScan)}</Link>
+        <div className="flex items-center gap-2">
+          <LangToggle lang={lang} hrefFor={(l) => `/r/${id}${l === "es" ? "?lang=es" : ""}`} />
+          <Link href="/" aria-label={t(UI.newScan)} className="rounded-full border border-line px-3.5 py-2 hover:bg-panel">
+            <span className="sm:hidden">＋</span>
+            <span className="hidden sm:inline">{t(UI.newScan)}</span>
+          </Link>
         </div>
       </div>
+      <p className="print-only text-sm font-semibold tracking-[0.18em] text-sage-light">PRECISE TALONS · {t(UI.scoreTitle)}</p>
 
       {/* ── Header + score ── */}
       <header className="pt-4 text-center">
         <h1 className="font-serif text-4xl leading-tight sm:text-5xl">{report.businessName}</h1>
         <p className="mt-2 text-muted">
           <a href={report.finalUrl} target="_blank" rel="noreferrer" className="break-all underline decoration-line underline-offset-4 hover:text-ivory">{host}</a>
-          <span className="mx-2">·</span>
-          <span className="whitespace-nowrap">{t(UI.scannedOn)} {date}</span>
+          <span className="mx-2 hidden sm:inline">·</span>
+          <span className="block whitespace-nowrap sm:inline">{t(UI.scannedOn)} {date}</span>
         </p>
         {report.platform && <p className="mt-2"><Chip>{lang === "es" ? `Hecho con ${report.platform}` : `Built on ${report.platform}`}</Chip></p>}
         <div className="mt-8">
@@ -46,6 +54,15 @@ export function ReportView({ report, id, lang = "en" }: { report: ScanReport; id
         <p className="mt-4 text-muted">
           <span className="text-ivory">{passed}</span> {t(UI.passed)} · <span className="text-ivory">{issues}</span> {t(UI.issues)}
         </p>
+        <div className="no-print mt-6 grid grid-cols-3 gap-2 sm:mx-auto sm:max-w-lg">
+          <Link href={`/r/${id}/present${lang === "es" ? "?lang=es" : ""}`} className="flex items-center justify-center rounded-2xl bg-sage px-3 py-3.5 font-semibold text-charcoal hover:bg-sage-light">
+            {t(UI.present)}
+          </Link>
+          <button onClick={() => window.print()} className="flex items-center justify-center rounded-2xl border border-line px-3 py-3.5 font-medium hover:bg-panel">
+            {t(UI.print)}
+          </button>
+          <CopyLinkButton url={shareUrl} lang={lang} />
+        </div>
       </header>
 
       {/* ── Google listing ── */}
@@ -62,7 +79,7 @@ export function ReportView({ report, id, lang = "en" }: { report: ScanReport; id
 
       {/* ── Category bars ── */}
       <Section id="categories" title={t(UI.categories)}>
-        <div className="space-y-5 rounded-2xl border border-line bg-panel p-5">
+        <div className="keep-together print-compact space-y-5 rounded-2xl border border-line bg-panel p-5">
           {CATEGORIES.map((c) => {
             const cat = report.categories.find((x) => x.category === c)!;
             return <CategoryBar key={c} name={t(CATEGORY_NAMES[c])} pct={cat.percent} max={cat.max} naText={t(UI.couldntCheck)} />;
@@ -75,7 +92,7 @@ export function ReportView({ report, id, lang = "en" }: { report: ScanReport; id
         <Section id="fix-first" title={t(UI.fixFirst)} sub={t(UI.fixFirstSub)}>
           <ol className="space-y-3">
             {top.map((c, i) => (
-              <li key={c.id} className="flex gap-4 rounded-2xl border border-line bg-panel p-4">
+              <li key={c.id} className="print-compact flex gap-4 rounded-2xl border border-line bg-panel p-4">
                 <span className="font-serif text-3xl leading-none text-sage-light">{i + 1}</span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start gap-2">
@@ -104,7 +121,7 @@ export function ReportView({ report, id, lang = "en" }: { report: ScanReport; id
               .sort((a, b) => pointsLost(b) - pointsLost(a));
             if (!problems.length) return null;
             return (
-              <div key={s} className="rounded-2xl border border-line bg-panel p-5">
+              <div key={s} className="keep-together print-compact rounded-2xl border border-line bg-panel p-5">
                 <div className="flex items-baseline justify-between gap-3">
                   <h3 className="font-serif text-2xl text-sage-light">{t(SERVICE_NAMES[s])}</h3>
                   <span className="shrink-0 text-sm text-muted">{problems.length}</span>
@@ -158,6 +175,17 @@ export function ReportView({ report, id, lang = "en" }: { report: ScanReport; id
         </Section>
       )}
 
+      {/* ── Share ── */}
+      <Section id="share" title={t(UI.share)} sub={t(UI.shareSub)}>
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-panel p-5 sm:flex-row">
+          <div className="w-44 shrink-0 overflow-hidden rounded-xl" dangerouslySetInnerHTML={{ __html: qr }} />
+          <div className="min-w-0 text-center sm:text-left">
+            <p className="break-all font-mono text-sm">{shareUrl}</p>
+            <div className="no-print mt-3"><CopyLinkButton url={shareUrl} lang={lang} compact /></div>
+          </div>
+        </div>
+      </Section>
+
       {/* ── How we scored this ── */}
       <Section id="how-scored" title={t(UI.howScored)}>
         <p className="text-muted">{t(UI.scoreMethod)}</p>
@@ -191,7 +219,7 @@ export function ReportView({ report, id, lang = "en" }: { report: ScanReport; id
 function CheckRow({ c, lang }: { c: CheckResult; lang: Lang }) {
   const t = (x: { en: string; es: string }) => x[lang];
   return (
-    <details className="group">
+    <details className="group" data-status={c.status}>
       <summary className="flex items-center gap-3 px-4 py-3.5 hover:bg-panel-2">
         <StatusIcon status={c.status} className="h-6 w-6 shrink-0" />
         <span className="min-w-0 flex-1">
@@ -216,15 +244,18 @@ function CheckRow({ c, lang }: { c: CheckResult; lang: Lang }) {
   );
 }
 
-function CopyLinkButton({ id, lang }: { id: string; lang: Lang }) {
+function CopyLinkButton({ url, lang, compact }: { url: string; lang: Lang; compact?: boolean }) {
   const [done, setDone] = useState(false);
   return (
     <button
-      className="rounded-full bg-sage px-3.5 py-2 font-medium text-charcoal hover:bg-sage-light"
+      className={
+        compact
+          ? "rounded-full border border-sage px-4 py-2 text-sage-light hover:bg-sage/10"
+          : "flex items-center justify-center rounded-2xl border border-line px-3 py-3.5 font-medium hover:bg-panel"
+      }
       onClick={async () => {
-        const url = `${window.location.origin}/r/${id}`;
         try {
-          if (navigator.share) await navigator.share({ url });
+          if (navigator.share && !compact) await navigator.share({ url });
           else await navigator.clipboard.writeText(url);
           setDone(true);
           setTimeout(() => setDone(false), 2000);
@@ -233,7 +264,45 @@ function CopyLinkButton({ id, lang }: { id: string; lang: Lang }) {
         }
       }}
     >
-      {done ? UI.copied[lang] : UI.copyLink[lang]}
+      {done ? UI.copied[lang] : compact ? UI.copyLink[lang] : lang === "es" ? "Compartir" : "Share"}
     </button>
   );
+}
+
+/** EN | ES switch. */
+export function LangToggle({ lang, hrefFor }: { lang: Lang; hrefFor: (l: Lang) => string }) {
+  return (
+    <div className="flex overflow-hidden rounded-full border border-line text-sm" role="group" aria-label="Language / Idioma">
+      {(["en", "es"] as Lang[]).map((l) => (
+        <Link
+          key={l}
+          href={hrefFor(l)}
+          replace
+          scroll={false}
+          aria-current={l === lang ? "true" : undefined}
+          className={`px-3 py-2 font-semibold ${l === lang ? "bg-ivory text-charcoal" : "text-muted hover:text-ivory"}`}
+        >
+          {l.toUpperCase()}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+/** When printing, open every problem row so the PDF has the details (passing rows stay one line). */
+function usePrintExpandsDetails() {
+  useEffect(() => {
+    let opened: HTMLDetailsElement[] = [];
+    const before = () => {
+      opened = Array.from(document.querySelectorAll<HTMLDetailsElement>('details[data-status="fail"], details[data-status="warn"]')).filter((d) => !d.open);
+      opened.forEach((d) => (d.open = true));
+    };
+    const after = () => opened.forEach((d) => (d.open = false));
+    window.addEventListener("beforeprint", before);
+    window.addEventListener("afterprint", after);
+    return () => {
+      window.removeEventListener("beforeprint", before);
+      window.removeEventListener("afterprint", after);
+    };
+  }, []);
 }

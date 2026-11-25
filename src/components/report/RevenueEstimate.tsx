@@ -25,6 +25,7 @@ export function RevenueEstimate({ lang }: { lang: Lang }) {
   const num = (n: number) => n.toLocaleString("en-US");
 
   return (
+    <div className={on ? "" : "no-print"}>
     <Section id="revenue" title={t(UI.revenueTitle)}>
       <div className="rounded-2xl border border-line bg-panel p-5">
         {!on ? (
@@ -38,7 +39,7 @@ export function RevenueEstimate({ lang }: { lang: Lang }) {
           <>
             <div className="flex items-center justify-between">
               <span className="rounded-full bg-panel-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted">{t(UI.revenueEstimate)}</span>
-              <button onClick={() => setOn(false)} className="text-sm text-muted underline underline-offset-4">{t(UI.revenueTurnOff)}</button>
+              <button onClick={() => setOn(false)} className="no-print text-sm text-muted underline underline-offset-4">{t(UI.revenueTurnOff)}</button>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <NumberField label={t(UI.revenueVisitors)} value={visitors} onChange={setVisitors} placeholder="1000" />
@@ -67,6 +68,7 @@ export function RevenueEstimate({ lang }: { lang: Lang }) {
         )}
       </div>
     </Section>
+    </div>
   );
 }
 

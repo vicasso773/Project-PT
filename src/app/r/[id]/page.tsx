@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { loadReport } from "@/lib/db";
+import { baseUrl, parseLang, qrSvg, reportPath } from "@/lib/share";
 import { ReportView } from "@/components/report/ReportView";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ lang?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const row = await loadReport((await params).id);
@@ -17,8 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ReportPage({ params }: Props) {
-  const row = await loadReport((await params).id);
+export default async function ReportPage({ params, searchParams }: Props) {
+  const { id } = await params;
+  const lang = parseLang((await searchParams).lang);
+  const row = await loadReport(id);
   if (!row) notFound();
-  return <ReportView report={row.data} id={row.id} />;
+  const shareUrl = (await baseUrl()) + reportPath(id, lang);
+  return <ReportView report={row.data} id={row.id} lang={lang} shareUrl={shareUrl} qr={await qrSvg(shareUrl)} />;
 }

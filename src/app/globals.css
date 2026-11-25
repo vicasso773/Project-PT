@@ -41,3 +41,35 @@ summary { list-style: none; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ───────────── Print / Save as PDF ───────────── */
+.print-only { display: none; }
+
+@media print {
+  @page { margin: 14mm 12mm; }
+  /* Light, ink-friendly version of the brand. Score colors stay. */
+  :root, html, body {
+    --color-charcoal: #ffffff;
+    --color-panel: #ffffff;
+    --color-panel-2: #f1efe8;
+    --color-line: #d8d4c8;
+    --color-ivory: #121417;
+    --color-muted: #55524a;
+    --color-sage-light: #56664c;
+    --color-na: #8a8d92;
+    background: #fff !important;
+  }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .no-print { display: none !important; }
+  .print-only { display: block; }
+  main { max-width: none !important; padding: 0 !important; }
+  section { padding-top: 14px !important; padding-bottom: 14px !important; }
+  li, details, tr, .keep-together { break-inside: avoid; }
+  body { font-size: 13px; }
+  table { font-size: 10.5px; }
+  details summary { padding-top: 6px !important; padding-bottom: 6px !important; }
+  .print-compact { padding: 10px 14px !important; }
+  h2, h3 { break-after: avoid; }
+  a { text-decoration: none !important; }
+  summary svg:last-child { display: none; } /* hide the expand arrow */
+}
