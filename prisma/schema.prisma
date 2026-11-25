@@ -1,0 +1,28 @@
+// Database layout. Locally this is a SQLite file (prisma/dev.db).
+// For Vercel, see README: we point DATABASE_URL at Turso (hosted SQLite).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Scan {
+  id           String   @id // short random id used in the share link: /r/<id>
+  createdAt    DateTime @default(now())
+  url          String // the final URL we scanned
+  host         String // "air-rite.com" (used for the 1-hour cache and search)
+  businessName String
+  score        Int?
+  label        String?
+  kind         String   @default("site") // "site" or "places" (no-website mode)
+  parentId     String? // set on competitor scans: the report they're compared against
+  report       String // the full ScanReport as JSON
+
+  @@index([host, createdAt])
+  @@index([createdAt])
+  @@index([parentId])
+}

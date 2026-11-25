@@ -43,7 +43,8 @@ export const conversionChecks: Record<string, CheckFn> = {
   "tel-link": ({ pages }) => {
     const tels = pages[0].$('a[href^="tel:"], a[href^="TEL:"]');
     if (tels.length) {
-      const raw = (tels.first().attr("href") ?? "").replace(/^tel:/i, "");
+      let raw = (tels.first().attr("href") ?? "").replace(/^tel:/i, "");
+      try { raw = decodeURIComponent(raw); } catch { /* keep as-is */ }
       const num = digitsOnly(raw).length === 10 ? formatPhone(digitsOnly(raw)) : raw;
       return pass(`Found a tap-to-call link (${num}).`, `Hay un enlace para llamar (${num}).`);
     }
