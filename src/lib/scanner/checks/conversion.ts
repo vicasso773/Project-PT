@@ -46,7 +46,7 @@ export const conversionChecks: Record<string, CheckFn> = {
       let raw = (tels.first().attr("href") ?? "").replace(/^tel:/i, "");
       try { raw = decodeURIComponent(raw); } catch { /* keep as-is */ }
       const num = digitsOnly(raw).length === 10 ? formatPhone(digitsOnly(raw)) : raw;
-      return pass(`Found a tap-to-call link (${num}).`, `Hay un enlace para llamar (${num}).`);
+      return pass(`Found a tap-to-call link: ${num}.`, `Hay un enlace para llamar: ${num}.`);
     }
     const phones = findPhones(pages[0].text);
     if (phones.length)
