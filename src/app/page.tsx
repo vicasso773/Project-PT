@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ScanForm } from "@/components/ScanForm";
 
 export default function Home() {
@@ -9,6 +10,9 @@ export default function Home() {
         Type a local business&apos;s website. In about a minute you&apos;ll have a plain-English report to show the owner.
       </p>
       <ScanForm />
+      <Link href="/history" className="mt-8 self-start text-muted underline decoration-line underline-offset-4 hover:text-ivory">
+        Scan history →
+      </Link>
     </main>
   );
 }
