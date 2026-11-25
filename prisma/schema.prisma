@@ -21,6 +21,7 @@ model Scan {
   kind         String   @default("site") // "site" or "places" (no-website mode)
   parentId     String? // set on competitor scans: the report they're compared against
   report       String // the full ScanReport as JSON
+  leadSavedAt  DateTime? // when it was sent to Airtable as a lead
 
   @@index([host, createdAt])
   @@index([createdAt])

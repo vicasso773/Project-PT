@@ -12,7 +12,7 @@ import { type Competitor, CompareTable, TheyHaveList } from "./Compare";
 
 const SERVICE_ORDER: Service[] = ["website", "gbp", "reviews", "leads", "ordering"];
 
-export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors = [] }: { report: ScanReport; id: string; lang?: Lang; shareUrl: string; qr: string; competitors?: Competitor[] }) {
+export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors = [], lead = null }: { report: ScanReport; id: string; lang?: Lang; shareUrl: string; qr: string; competitors?: Competitor[]; lead?: { savedAt: string | null } | null }) {
   usePrintExpandsDetails();
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -73,6 +73,7 @@ export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors 
           </button>
           <CopyLinkButton url={shareUrl} lang={lang} />
         </div>
+        {lead && <SaveLeadButton id={id} savedAt={lead.savedAt} />}
       </header>
 
       {/* ── Google listing ── */}
@@ -284,6 +285,32 @@ function CopyLinkButton({ url, lang, compact }: { url: string; lang: Lang; compa
     >
       {done ? UI.copied[lang] : compact ? UI.copyLink[lang] : lang === "es" ? "Compartir" : "Share"}
     </button>
+  );
+}
+
+/** "Save as lead" → Airtable. Only shown when Airtable is configured. Internal, so English only. */
+function SaveLeadButton({ id, savedAt }: { id: string; savedAt: string | null }) {
+  const [state, setState] = useState<{ saved: string | null; busy: boolean; error: string | null }>({ saved: savedAt, busy: false, error: null });
+  const save = async (force = false) => {
+    setState((s) => ({ ...s, busy: true, error: null }));
+    const res = await fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, force }) });
+    const json = await res.json().catch(() => ({}));
+    setState(res.ok ? { saved: json.savedAt, busy: false, error: null } : { saved: state.saved, busy: false, error: json.error ?? "Couldn't save." });
+  };
+  return (
+    <div className="no-print mt-3 text-sm sm:mx-auto sm:max-w-lg">
+      {state.saved ? (
+        <p className="text-muted">
+          ✓ Saved to Airtable {new Date(state.saved).toLocaleDateString()} ·{" "}
+          <button onClick={() => save(true)} disabled={state.busy} className="underline underline-offset-4">save again</button>
+        </p>
+      ) : (
+        <button onClick={() => save()} disabled={state.busy} className="w-full rounded-2xl border border-sage px-3 py-3 font-medium text-sage-light hover:bg-sage/10 disabled:opacity-50">
+          {state.busy ? "Saving…" : "Save as lead (Airtable)"}
+        </button>
+      )}
+      {state.error && <p className="mt-2 text-score-red" role="alert">{state.error}</p>}
+    </div>
   );
 }
 
