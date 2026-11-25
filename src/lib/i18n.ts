@@ -6,6 +6,7 @@ export const UI = {
   scannedOn: { en: "Scanned", es: "Revisado el" },
   outOf: { en: "out of 100", es: "de 100" },
   categories: { en: "How the site scores", es: "Cómo califica el sitio" },
+  categoriesListing: { en: "How the listing scores", es: "Cómo califica la ficha" },
   couldntCheck: { en: "Couldn't check", es: "No se pudo revisar" },
   fixFirst: { en: "Fix these first", es: "Arreglar primero" },
   fixFirstSub: { en: "The biggest wins, weighted toward the easiest fixes.", es: "Lo que más ayuda, priorizando lo más fácil de arreglar." },
@@ -67,6 +68,7 @@ export const UI = {
   you: { en: "You", es: "Usted" },
   theyHave: { en: "What they have that you don't", es: "Lo que ellos tienen y usted no" },
   couldntScan: { en: "Couldn't scan", es: "No se pudo escanear" },
+  noWebsiteMode: { en: "No website: Google listing only", es: "Sin sitio web: solo ficha de Google" },
   scoreTitle: { en: "Website score", es: "Puntuación del sitio" },
   scoreMethod: {
     en: "Each category is worth points: Conversion 30, SEO and tracking 25, Speed and mobile 25, Trust 10, Content 10. Inside a category, each check is worth its weight: pass earns all of it, warn earns half, fail earns none. Checks we couldn't run are left out and the category is scored on what we could check. If less than 40% of a category could be checked, the whole category is left out and the total is rescaled.",

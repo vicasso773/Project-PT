@@ -52,10 +52,15 @@ export interface PlacesInfo {
   website?: string;
   /** true when Google's listing links to the same website we scanned. */
   matchedWebsite: boolean;
+  status?: string; // OPERATIONAL, CLOSED_TEMPORARILY, …
+  photoCount?: number; // Google returns at most 10
+  category?: string;
 }
 
 export interface ScanReport {
   version: 1;
+  /** "site" = website scan, "places" = no-website mode (Google listing only). */
+  mode?: "site" | "places";
   inputUrl: string;
   finalUrl: string;
   businessName: string;

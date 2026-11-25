@@ -15,6 +15,7 @@ const STEPS = [
 
 export function ScanForm() {
   const router = useRouter();
+  const [mode, setMode] = useState<"site" | "places">("site");
   const [url, setUrl] = useState("");
   const [fresh, setFresh] = useState(false);
   const [showComp, setShowComp] = useState(false);
@@ -39,7 +40,11 @@ export function ScanForm() {
       const res = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, fresh, competitors: showComp ? comp.filter((c) => c.trim()) : [] }),
+        body: JSON.stringify(
+          mode === "places"
+            ? { mode, query: url }
+            : { url, fresh, competitors: showComp ? comp.filter((c) => c.trim()) : [] },
+        ),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.id) throw new Error(json.error ?? "The scan failed. Please try again.");
@@ -52,15 +57,30 @@ export function ScanForm() {
 
   return (
     <form onSubmit={submit} className="mt-8">
-      <label htmlFor="url" className="sr-only">Website address</label>
+      <div className="mb-3 grid grid-cols-2 rounded-2xl border border-line p-1" role="tablist" aria-label="What to scan">
+        {([["site", "Has a website"], ["places", "No website"]] as const).map(([m, label]) => (
+          <button
+            key={m}
+            type="button"
+            role="tab"
+            aria-selected={mode === m}
+            disabled={busy}
+            onClick={() => { setMode(m); setUrl(""); setError(null); }}
+            className={`rounded-xl px-3 py-2.5 font-medium ${mode === m ? "bg-panel-2 text-ivory" : "text-muted"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <label htmlFor="url" className="sr-only">{mode === "site" ? "Website address" : "Business name and town"}</label>
       <input
         id="url"
         type="text"
-        inputMode="url"
-        autoCapitalize="none"
+        inputMode={mode === "site" ? "url" : "text"}
+        autoCapitalize={mode === "site" ? "none" : "words"}
         autoCorrect="off"
         spellCheck={false}
-        placeholder="joesbarbershop.com"
+        placeholder={mode === "site" ? "joesbarbershop.com" : "Lupe's Tacos, Cicero"}
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         disabled={busy}
@@ -71,8 +91,9 @@ export function ScanForm() {
         disabled={busy || !url.trim()}
         className="mt-3 w-full rounded-2xl bg-sage px-5 py-4 text-xl font-semibold text-charcoal transition hover:bg-sage-light disabled:opacity-50"
       >
-        {busy ? "Scanning…" : "Scan website"}
+        {busy ? "Scanning…" : mode === "site" ? "Scan website" : "Check Google listing"}
       </button>
+      {mode === "site" && (<>
       <div className="mt-4 rounded-2xl border border-line">
         <button type="button" onClick={() => setShowComp((v) => !v)} disabled={busy} className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left">
           <span className="font-medium">Compare with competitors <span className="text-muted">(optional, up to 2)</span></span>
@@ -103,13 +124,14 @@ export function ScanForm() {
         <input type="checkbox" checked={fresh} onChange={(e) => setFresh(e.target.checked)} disabled={busy} className="h-4 w-4 accent-[#7a8b6f]" />
         Force a fresh scan (otherwise a scan from the last hour is reused)
       </label>
+      </>)}
 
       {busy && (
         <div className="mt-6 rounded-2xl border border-line bg-panel p-5" aria-live="polite">
           <div className="h-1.5 overflow-hidden rounded-full bg-line">
             <div className="h-full rounded-full bg-sage transition-[width] duration-1000" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
           </div>
-          <p className="mt-3">{STEPS[step]}</p>
+          <p className="mt-3">{mode === "places" ? "Looking up the Google listing…" : STEPS[step]}</p>
         </div>
       )}
       {error && (

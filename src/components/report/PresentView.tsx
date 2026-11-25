@@ -35,7 +35,9 @@ export function PresentView({ report, id, lang, shareUrl, qr, competitors = [] }
     <div key="cover" className="flex flex-col items-center text-center">
       <p className="text-sm font-semibold tracking-[0.25em] text-sage-light">PRECISE TALONS</p>
       <h1 className="mt-4 font-serif text-5xl leading-tight sm:text-7xl">{report.businessName}</h1>
-      <p className="mt-2 text-lg text-muted sm:text-xl">{report.finalUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}</p>
+      <p className="mt-2 text-lg text-muted sm:text-xl">
+        {report.mode === "places" ? (report.places?.address ?? "") : report.finalUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+      </p>
       <div className="mt-8">{seen.has(0) && <ScoreRing score={report.score} label={label ? t(label) : t(UI.couldntCheck)} size={300} />}</div>
     </div>,
 
@@ -43,7 +45,7 @@ export function PresentView({ report, id, lang, shareUrl, qr, competitors = [] }
       <h2 className="font-serif text-4xl sm:text-6xl">{t(UI.categories)}</h2>
       <div className="mt-10 space-y-8 text-xl sm:text-2xl [&_.h-3]:h-5">
         {seen.has(1) &&
-          CATEGORIES.map((c) => {
+          CATEGORIES.filter((c) => report.checks.some((x) => x.category === c)).map((c) => {
             const cat = report.categories.find((x) => x.category === c)!;
             return <CategoryBar key={c} name={t(CATEGORY_NAMES[c])} pct={cat.percent} max={cat.max} naText={t(UI.couldntCheck)} />;
           })}

@@ -24,6 +24,8 @@ export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors 
   const passed = report.checks.filter((c) => c.status === "pass").length;
   const issues = report.checks.filter((c) => c.status === "fail" || c.status === "warn").length;
   const host = report.finalUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  const placesMode = report.mode === "places";
+  const usedCats = CATEGORIES.filter((c) => report.checks.some((x) => x.category === c));
 
   return (
     <main className="mx-auto max-w-3xl px-4 pb-24 sm:px-6">
@@ -44,10 +46,17 @@ export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors 
       <header className="pt-4 text-center">
         <h1 className="font-serif text-4xl leading-tight sm:text-5xl">{report.businessName}</h1>
         <p className="mt-2 text-muted">
-          <a href={report.finalUrl} target="_blank" rel="noreferrer" className="break-all underline decoration-line underline-offset-4 hover:text-ivory">{host}</a>
+          {placesMode ? (
+            <a href={report.finalUrl} target="_blank" rel="noreferrer" className="underline decoration-line underline-offset-4 hover:text-ivory">
+              {report.places?.address ?? t(UI.googleListing)}
+            </a>
+          ) : (
+            <a href={report.finalUrl} target="_blank" rel="noreferrer" className="break-all underline decoration-line underline-offset-4 hover:text-ivory">{host}</a>
+          )}
           <span className="mx-2 hidden sm:inline">·</span>
           <span className="block whitespace-nowrap sm:inline">{t(UI.scannedOn)} {date}</span>
         </p>
+        {placesMode && <p className="mt-2"><Chip tone="sage">{t(UI.noWebsiteMode)}</Chip></p>}
         {report.platform && <p className="mt-2"><Chip>{lang === "es" ? `Hecho con ${report.platform}` : `Built on ${report.platform}`}</Chip></p>}
         <div className="mt-8">
           <ScoreRing score={report.score} label={label ? t(label) : t(UI.couldntCheck)} />
@@ -67,7 +76,7 @@ export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors 
       </header>
 
       {/* ── Google listing ── */}
-      {report.places && (
+      {report.places && (report.places.rating !== undefined || placesMode) && (
         <div className="mx-auto mt-6 max-w-md rounded-2xl border border-line bg-panel p-4 text-center">
           <div className="text-sm text-muted">{t(UI.googleListing)}</div>
           <div className="mt-1 text-lg">
@@ -79,9 +88,9 @@ export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors 
       )}
 
       {/* ── Category bars ── */}
-      <Section id="categories" title={t(UI.categories)}>
+      <Section id="categories" title={t(placesMode ? UI.categoriesListing : UI.categories)}>
         <div className="keep-together print-compact space-y-5 rounded-2xl border border-line bg-panel p-5">
-          {CATEGORIES.map((c) => {
+          {usedCats.map((c) => {
             const cat = report.categories.find((x) => x.category === c)!;
             return <CategoryBar key={c} name={t(CATEGORY_NAMES[c])} pct={cat.percent} max={cat.max} naText={t(UI.couldntCheck)} />;
           })}
@@ -157,7 +166,7 @@ export function ReportView({ report, id, lang = "en", shareUrl, qr, competitors 
       {/* ── Every check ── */}
       <Section id="all-checks" title={t(UI.allChecks)}>
         <div className="space-y-6">
-          {CATEGORIES.map((cat) => {
+          {usedCats.map((cat) => {
             const list = report.checks.filter((c) => c.category === cat);
             const pct = report.categories.find((x) => x.category === cat)!.percent;
             return (

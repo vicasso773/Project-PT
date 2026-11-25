@@ -15,6 +15,9 @@ const FIELDS = [
   "places.regularOpeningHours.weekdayDescriptions",
   "places.googleMapsUri",
   "places.websiteUri",
+  "places.businessStatus",
+  "places.photos",
+  "places.primaryTypeDisplayName",
 ].join(",");
 
 export const bareHost = (u: string) => {
@@ -37,8 +40,13 @@ function toInfo(p: any, matchedWebsite: boolean): PlacesInfo {
     mapsUrl: p.googleMapsUri,
     website: p.websiteUri,
     matchedWebsite,
+    status: p.businessStatus,
+    photoCount: Array.isArray(p.photos) ? p.photos.length : 0,
+    category: p.primaryTypeDisplayName?.text,
   };
 }
+
+export { toInfo };
 
 /**
  * Search Google for the business. When `siteUrl` is given, we only accept a

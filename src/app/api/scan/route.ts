@@ -3,6 +3,7 @@
 
 import { NextResponse } from "next/server";
 import { ScanError, runScan } from "@/lib/scanner";
+import { runPlacesScan } from "@/lib/scanner/placesMode";
 import { normalizeUrl } from "@/lib/scanner/fetchSite";
 import type { CompareEntry } from "@/lib/scanner/types";
 import { hostOf, recentScan, saveReport } from "@/lib/db";
@@ -14,11 +15,25 @@ export const maxDuration = 120; // Google's speed test can take up to ~60 second
 const MAX_COMPETITORS = 2;
 
 export async function POST(req: Request) {
-  let body: { url?: string; fresh?: boolean; competitors?: string[] };
+  let body: { url?: string; fresh?: boolean; competitors?: string[]; mode?: "site" | "places"; query?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Bad request." }, { status: 400 });
+  }
+
+  // ── No-website mode: Google listing only ──
+  if (body.mode === "places") {
+    const wait = rateLimit(clientIp(req.headers));
+    if (wait) return NextResponse.json({ error: `Too many scans. Try again in ${wait} seconds.` }, { status: 429 });
+    try {
+      const report = await runPlacesScan(body.query ?? "");
+      return NextResponse.json({ id: await saveReport(report, { kind: "places" }) });
+    } catch (e) {
+      if (e instanceof ScanError) return NextResponse.json({ error: e.message }, { status: 422 });
+      console.error(e);
+      return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+    }
   }
 
   let url: URL;
